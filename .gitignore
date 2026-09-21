@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+release/
+data/*
+!data/README.md
+!data/bench/
+data/bench/*
+!data/bench/figs/
+!data/bench/*summary*.json

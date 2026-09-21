@@ -1,0 +1,9 @@
+vllm>=0.7
+transformers>=4.46
+peft>=0.13
+accelerate>=1.0
+datasets>=3.0
+modelscope>=1.20
+pyyaml
+tqdm
+openai>=1.0

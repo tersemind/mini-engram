@@ -1,0 +1,89 @@
+{
+  "overall": {
+    "base": 0.0389,
+    "full": 0.2853,
+    "rag5": 0.273,
+    "lora": 0.1811
+  },
+  "by_category": {
+    "base": {
+      "adversarial": 0.0022,
+      "multi_hop": 0.0551,
+      "open_domain": 0.0741,
+      "single_hop": 0.0592,
+      "temporal": 0.0117
+    },
+    "full": {
+      "adversarial": 0.6839,
+      "multi_hop": 0.1606,
+      "open_domain": 0.0668,
+      "single_hop": 0.2224,
+      "temporal": 0.0713
+    },
+    "rag5": {
+      "adversarial": 0.8946,
+      "multi_hop": 0.0705,
+      "open_domain": 0.0578,
+      "single_hop": 0.1267,
+      "temporal": 0.0349
+    },
+    "lora": {
+      "adversarial": 0.0,
+      "multi_hop": 0.1927,
+      "open_domain": 0.2129,
+      "single_hop": 0.304,
+      "temporal": 0.0913
+    }
+  },
+  "by_conversation": {
+    "base": {
+      "locomo_conv-26": 0.0513,
+      "locomo_conv-30": 0.031,
+      "locomo_conv-41": 0.0303,
+      "locomo_conv-42": 0.0397,
+      "locomo_conv-43": 0.0313,
+      "locomo_conv-44": 0.0445,
+      "locomo_conv-47": 0.0219,
+      "locomo_conv-48": 0.0469,
+      "locomo_conv-49": 0.0537,
+      "locomo_conv-50": 0.0347
+    },
+    "full": {
+      "locomo_conv-26": 0.3054,
+      "locomo_conv-30": 0.326,
+      "locomo_conv-41": 0.3016,
+      "locomo_conv-42": 0.2792,
+      "locomo_conv-43": 0.2644,
+      "locomo_conv-44": 0.304,
+      "locomo_conv-47": 0.2204,
+      "locomo_conv-48": 0.286,
+      "locomo_conv-49": 0.2864,
+      "locomo_conv-50": 0.3062
+    },
+    "rag5": {
+      "locomo_conv-26": 0.2611,
+      "locomo_conv-30": 0.3201,
+      "locomo_conv-41": 0.2979,
+      "locomo_conv-42": 0.281,
+      "locomo_conv-43": 0.2971,
+      "locomo_conv-44": 0.279,
+      "locomo_conv-47": 0.2285,
+      "locomo_conv-48": 0.2441,
+      "locomo_conv-49": 0.2625,
+      "locomo_conv-50": 0.2792
+    },
+    "lora": {
+      "locomo_conv-26": 0.156,
+      "locomo_conv-30": 0.1488,
+      "locomo_conv-41": 0.214,
+      "locomo_conv-42": 0.156,
+      "locomo_conv-43": 0.2068,
+      "locomo_conv-44": 0.2402,
+      "locomo_conv-47": 0.1796,
+      "locomo_conv-48": 0.1505,
+      "locomo_conv-49": 0.1828,
+      "locomo_conv-50": 0.1829
+    }
+  },
+  "truncated": {}
+}
