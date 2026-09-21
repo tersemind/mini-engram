@@ -28,12 +28,8 @@ jobs:
           unzip -q -o bundle.zip -d bundle
           ls bundle/adapters
 
-      - name: Upload xinglan adapter (+ card)
-        run: |
-          hf upload kegokang/mini-engram-xinglan bundle/adapters/xinglan .
-          hf upload kegokang/mini-engram-xinglan bundle/adapters/README.md README.md
+      - name: Upload xinglan adapter (card included)
+        run: hf upload kegokang/mini-engram-xinglan bundle/adapters/xinglan .
 
-      - name: Upload hanhai adapter (+ card)
-        run: |
-          hf upload kegokang/mini-engram-hanhai bundle/adapters/hanhai .
-          hf upload kegokang/mini-engram-hanhai bundle/adapters/README.md README.md
+      - name: Upload hanhai adapter (card included)
+        run: hf upload kegokang/mini-engram-hanhai bundle/adapters/hanhai .
