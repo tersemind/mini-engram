@@ -30,10 +30,10 @@ jobs:
 
       - name: Upload xinglan adapter (+ card)
         run: |
-          hf upload tersemind/mini-engram-xinglan bundle/adapters/xinglan .
-          hf upload tersemind/mini-engram-xinglan bundle/adapters/README.md README.md
+          hf upload tersemindai/mini-engram-xinglan bundle/adapters/xinglan .
+          hf upload tersemindai/mini-engram-xinglan bundle/adapters/README.md README.md
 
       - name: Upload hanhai adapter (+ card)
         run: |
-          hf upload tersemind/mini-engram-hanhai bundle/adapters/hanhai .
-          hf upload tersemind/mini-engram-hanhai bundle/adapters/README.md README.md
+          hf upload tersemindai/mini-engram-hanhai bundle/adapters/hanhai .
+          hf upload tersemindai/mini-engram-hanhai bundle/adapters/README.md README.md
