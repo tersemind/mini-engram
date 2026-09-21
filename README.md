@@ -1,129 +1,174 @@
 # mini-engram
 
-一个"把知识烤进模型参数"的最小端到端工程仿制——对应 Engram（Hazy Research 系）的产品链路：
-**数据源 → self-study 合成训练集 → 按租户烤 LoRA adapter → 一个 base model 挂多 adapter 托管**。
+A minimal end-to-end reproduction of "baking knowledge into model parameters" — the product
+pipeline behind Engram (the Hazy Research family):
+**data source → self-study synthesis of a training set → per-tenant LoRA adapter baking →
+one base model hosting many adapters**.
 
-与检索式记忆（Mem0/RAG）的区别：知识以 LoRA 参数形式存在，推理时不需要检索、不需要把文档塞进上下文。
+Unlike retrieval-style memory (Mem0/RAG), knowledge lives in LoRA parameters: no retrieval
+at inference time, no documents stuffed into the context.
 
-## 链路
+## Pipeline
 
 ```
-scripts/make_demo_corpus.py   虚构公司"星澜科技"wiki（base model 绝不可能知道的事实）
-engram/ingest.py              目录/git 仓库 → chunks.jsonl
-engram/synth.py               self-study：base model 围绕语料自问自答 → QA 训练集
-engram/train_lora.py          PEFT LoRA 微调 → data/adapters/<租户>/
-engram/eval.py                同一套题：闭卷(无adapter) vs 烤入后(带adapter) 的 F1 对比
-scripts/serve.sh              vLLM multi-LoRA：一个 base 挂全部租户 adapter，OpenAI 兼容 API
-scripts/chat.py               调用演示：同一问题分别问 base 和租户 adapter
+scripts/make_demo_corpus.py   fictional company wiki ("Xinglan Tech") — facts the base model cannot possibly know
+engram/ingest.py              directory/git repo → chunks.jsonl
+engram/synth.py               self-study: the base model quizzes itself on the corpus → QA training set
+engram/train_lora.py          PEFT LoRA fine-tuning → data/adapters/<tenant>/
+engram/eval.py                same question set: closed-book (no adapter) vs baked (with adapter) F1
+scripts/serve.sh              vLLM multi-LoRA: one base hosts all tenant adapters, OpenAI-compatible API
+scripts/chat.py               demo call: ask the same question to base and to a tenant adapter
 ```
 
-## 快速开始（A10 24GB 可跑）
+## Quick start (runs on a single A10 24GB)
 
 ```bash
-bash scripts/setup_env.sh        # venv + 依赖（首次约 10 分钟）
-bash scripts/run_demo.sh         # 端到端 demo（首次会自动下载 Qwen2.5-7B-Instruct）
+bash scripts/setup_env.sh        # venv + dependencies (~10 min first time)
+bash scripts/run_demo.sh         # end-to-end demo (auto-downloads Qwen2.5-7B-Instruct on first run)
 ```
 
-跑自己的数据：
+Run on your own data:
 
 ```bash
-.venv/bin/python -m engram.ingest --tenant myteam --source /path/to/docs     # 或 git 仓库 URL
+.venv/bin/python -m engram.ingest --tenant myteam --source /path/to/docs     # or a git repo URL
 .venv/bin/python -m engram.synth  --tenant myteam
 .venv/bin/python -m engram.train_lora --tenant myteam
 .venv/bin/python -m engram.eval   --tenant myteam
 ```
 
-多租户托管：
+Multi-tenant serving:
 
 ```bash
-bash scripts/serve.sh                       # 自动挂载 data/adapters/ 下所有 adapter
-.venv/bin/python scripts/chat.py --tenant myteam "你们的报销系统叫什么？"
+bash scripts/serve.sh                       # auto-mounts every adapter under data/adapters/
+.venv/bin/python scripts/chat.py --tenant myteam "What is your reimbursement system called?"
 ```
 
-## 配置
+## Configuration
 
-- `MINI_ENGRAM_BASE_MODEL`：换 base model（默认 `Qwen/Qwen2.5-7B-Instruct`，ModelScope 下载）
-- synth/train/eval 的 `--model` 参数可单独指定生成/训练用的模型
+- `MINI_ENGRAM_BASE_MODEL`: switch the base model (default `Qwen/Qwen2.5-7B-Instruct`, downloaded via ModelScope)
+- `--model` on synth/train/eval selects the generation/training model independently
 
-## 实验结果（2026-09-20，A10 24GB，Qwen2.5-7B-Instruct）
+## Initial experiments (2026-09-20, A10 24GB, Qwen2.5-7B-Instruct)
 
-| 租户 | 合成 QA | 训练（20 epochs） | 闭卷 F1 | 烤入后 F1 |
+| Tenant | Synthetic QA | Training (20 epochs) | Closed-book F1 | Baked F1 |
 |---|---|---|---|---|
-| xinglan（星澜科技） | 123（双通道合成） | 168s | 0.126 | **0.649** |
-| hanhai（瀚海机器人） | 93 | 127s | 0.113 | **0.664** |
+| xinglan (Xinglan Tech) | 123 (two-pass synthesis) | 168s | 0.126 | **0.649** |
+| hanhai (Hanhai Robotics) | 93 | 127s | 0.113 | **0.664** |
 
-- 单通道合成（52 QA）对照组只有 0.575，且漏教的事实模型必然瞎编 → **数据覆盖度是核心配方**
-- 串味检查（交叉问答）：F1 ~0.33，逐题分析为指标假象（短答案精度偏好 + 通用职场常识巧合），无真实参数泄漏；但 adapter 对非本租户问题会自信瞎编（如把自家事实安到别家问题上）→ 多租户产品需要拒答/路由校准
-- 遗忘检查：6 组通用探针（代码/常识/写作/身份），+LoRA 与 base 表现一致，身份探针无公司人设泄漏
-- 托管演示：一个 vLLM 进程挂两个租户 adapter，HTTP 按 model 名路由，base 答"不知道"的问题，各租户准确回答（"算盘"/"白鹿生鲜"）
+- A single-pass synthesis control (52 QA) only reaches 0.575, and facts never taught are
+  inevitably fabricated → **data coverage is the core recipe ingredient**
+- Contamination check (cross-tenant questions): F1 ~0.33, shown by per-question analysis to
+  be a metric artifact (short-answer precision bias + generic workplace common sense), with no
+  genuine parameter-level leakage; however, adapters do confidently fabricate answers to other
+  tenants' questions (e.g., attributing their own facts to the other company) → multi-tenant
+  products need refusal/routing calibration
+- Forgetting check: 6 general probes (code/commonsense/writing/identity) — adapter matches
+  base; no company persona leakage on identity probes
+- Serving demo: one vLLM process hosts both tenant adapters, routed by model name over HTTP;
+  questions the base answers with "I don't know" are answered accurately per tenant
+  ("Abacus" / "Bailu Fresh")
 
-## 竞品对比 bench（2026-09-21，Qwen2.5-7B-Instruct，A10 24GB）
+## Competitor benchmark suite (2026-09-21, Qwen2.5-7B-Instruct, A10 24GB)
 
-统一四条件：**base**（闭卷）/ **full**（语料全文塞上下文）/ **rag5**（BM25 top-5，Mem0/RAG 式检索记忆）/ **lora**（每租户烤 adapter 后闭卷）。训练配方：self-study 双通道合成（对话语料用 dialog 模板，问答语言与语料一致）→ LoRA r=16 QA-SFT。
+Uniform conditions: **base** (closed-book) / **full** (entire corpus stuffed into context) /
+**rag5** (BM25 top-5, Mem0/RAG-style retrieval memory) / **lora** (per-tenant adapter baked,
+then closed-book). Training recipe: two-pass self-study synthesis (dialog templates for chat
+corpora; QA language matches corpus language) → LoRA r=16 QA-SFT.
 
-### 1. 合成公司 wiki（可控对照，防泄漏 by construction）
+### 1. Synthetic company wikis (controlled comparison, leakage-free by construction)
 
-| 租户 | 题集 | base | full | rag5 | lora:v1 | lora:v2(+拒答) |
+| Tenant | Quizset | base | full | rag5 | lora:v1 | lora:v2(+refusal) |
 |---|---|---|---|---|---|---|
 | xinglan | own | 0.126 | 0.349 | 0.361 | **0.666** | 0.621 |
-| xinglan | para(换问法) | 0.090 | 0.333 | 0.346 | **0.581** | 0.581 |
-| xinglan | cross(别家题) | 0.109 | 0.022 | 0.024 | 0.363 | 0.363 |
+| xinglan | para (paraphrase) | 0.090 | 0.333 | 0.346 | **0.581** | 0.581 |
+| xinglan | cross (other tenant) | 0.109 | 0.022 | 0.024 | 0.363 | 0.363 |
 | hanhai | own | 0.113 | 0.349 | 0.349 | **0.664** | — |
 | hanhai | para | 0.101 | 0.330 | 0.325 | **0.592** | — |
 | hanhai | cross | 0.111 | 0.042 | 0.047 | 0.324 | — |
 
-lora 在 own/para 上约为 full/rag5 上界的 **1.8-2×** 且对换问法鲁棒（-0.06~0.09）；代价是 cross 上自信瞎编（0.32-0.36 经逐题核对为指标假象+常识巧合，无真实参数泄漏，但多租户产品必须配路由/拒答校准）。
+LoRA is **1.8–2× the full/rag5 upper bound** on own/para and robust to paraphrase
+(-0.06..0.09 absolute); the cost is confident fabrication on cross (0.32–0.36, shown by
+per-question inspection to be a metric artifact plus generic common sense, no real leakage —
+but multi-tenant products still need routing/refusal calibration).
 
-### 2. LoCoMo 公开基准（10 段真实长对话 8k-16k 词，1986 官方题，官方 token-F1 口径）
+### 2. LoCoMo public benchmark (10 real long conversations of 8k–16k words, 1,986 official questions, official token-F1)
 
-| 条件 | overall | single_hop | multi_hop | temporal | open_domain | adversarial |
+| Condition | overall | single_hop | multi_hop | temporal | open_domain | adversarial |
 |---|---|---|---|---|---|---|
 | base | 0.039 | 0.059 | 0.055 | 0.012 | 0.074 | 0.002 |
-| full(32K) | 0.285 | 0.222 | 0.161 | 0.071 | 0.067 | 0.684 |
+| full (32K) | 0.285 | 0.222 | 0.161 | 0.071 | 0.067 | 0.684 |
 | rag5 | 0.273 | 0.127 | 0.071 | 0.035 | 0.058 | **0.895** |
 | lora | 0.181 | **0.304** | **0.193** | **0.091** | **0.213** | 0.000 |
 
-- **会的事：参数化记忆最好**。四个事实类目 lora 全面第一（single_hop 0.304 vs full 0.222 vs rag5 0.127）；multi_hop 上 rag5 仅 0.071（BM25 只捞单 session，跨 session 拼不起来）。
-- **不会的事：参数化记忆不会拒答**。adversarial 题（问的谈话里根本没发生，446/1986=22%）lora 得分字面 0——它 100% 自信编造，而 rag5 靠忠实指令 0.895 正确拒答。overall 的 lora < full/rag5 完全由这一列造成。
-- **剔除 adversarial 后**（n=1540）：lora **0.234** > full 0.170 > rag5 0.093 > base 0.048——参数化记忆的"已知知识密度"显著最高。
-- temporal 全体都低（0.03-0.09）：7B 对日期格式（"7 May 2023"）(token-F1 惩罚严格），lora 仍第一。
-- 对照提示：Mem0 论文的 LoCoMo 数字是 LLM-as-judge 口径且 base 模型不同，只可作量级参照，不可直接比较；Zep/Mem0 现均已转向此基准。
+- **What it knows: parametric memory wins.** LoRA leads all four factual categories
+  (single_hop 0.304 vs full 0.222 vs rag5 0.127); on multi_hop, rag5 only reaches 0.071
+  (BM25 fetches single sessions and cannot assemble cross-session chains).
+- **What it doesn't know: parametric memory never refuses.** On adversarial questions
+  (about things that never happened; 446/1986 = 22%), LoRA scores literally 0 — it
+  fabricates 100% of the time, while rag5 with faithful instructions refuses correctly
+  at 0.895. The overall gap (lora < full/rag5) is caused entirely by this column.
+- **Excluding adversarial** (n=1540): lora **0.234** > full 0.170 > rag5 0.093 > base
+  0.048 — parametric memory has by far the highest "known-knowledge density".
+- Temporal is low for everyone (0.03–0.09): a 7B model struggles with date formats
+  ("7 May 2023") under strict token-F1; lora still leads.
+- Comparability note: Mem0's published LoCoMo numbers use LLM-as-judge scoring on a
+  different base model — order-of-magnitude reference only, never a direct comparison;
+  both Zep and Mem0 now report on this benchmark.
 
-### 3. LongHealth（Engram 家族官方尺子，20 虚构病人 400 五选一，MC accuracy）
+### 3. LongHealth (the Engram-family's own ruler: 20 fictional patients, 400 five-option MC questions, MC accuracy)
 
-Cartridges 官方演示同款闭卷基准（其 0.96GB cartridge 闭卷 55.1% vs 全量 ICL）；我们的 adapter 仅 ~40M 参数、~5 分钟/病人。
+The same closed-book benchmark used in the official Cartridges demo (their 0.96GB
+cartridge scores 55.1% closed-book vs full-context ICL). Our adapters are only ~40M
+parameters, ~5 minutes per patient.
 
-| 条件 | overall | 说明 |
+| Condition | overall | Note |
 |---|---|---|
-| base | 0.398 | 虚构病人，但医学常识可迁移 |
-| full(8K) | **0.625** | 读着信答，阅读理解上限 |
-| rag5 | 0.560 | 检索 5 块够用但不如全文 |
-| lora | **0.355** | **低于 base**——细粒度临床细节没烤住 |
+| base | 0.398 | fictional patients, but real medical common sense transfers |
+| full (8K) | **0.625** | reading the letters — the comprehension ceiling |
+| rag5 | 0.560 | 5 retrieved chunks help, but less than full text |
+| lora | **0.355** | **below base** — fine-grained clinical detail was not baked in |
 
-- **与前两张表相反的结果，恰好是论文最重要的讨论点**：当评测是"细粒度判别"（剂量数字、方案组成、否定式提问 NOT-part-of）时，朴素 QA-SFT 烤入（无课程学习、无防遗忘混合、~100 题/病人）会扰动 base 的医学推理却没换来精确记忆；
-  字母抽取不是原因（lora null-letter 0/400，错答全是知识性错误）。
-- 对照 Cartridges 55.1%：差距来自训练配方（持续预训练级 cartridge vs 我们的最小 SFT），
-  说明"烤入"的上限取决于配方深度——这正是护城河章节的实证注脚。
-- 任务依赖结论：**闭卷原子事实回忆**（wiki/LoCoMo 短答 F1）参数化记忆显著占优；
-  **文档级细粒度理解**（LongHealth MC）读原文更好。参数化记忆不是检索的万能替代品。
+- **The reversed result is precisely the paper's central discussion point**: when the
+  evaluation is fine-grained discrimination (dosage numbers, regimen composition,
+  NOT-part-of negation), naive QA-SFT baking (no curriculum, no anti-forgetting mix,
+  ~100 QA per patient) perturbs the base model's medical reasoning without buying precise
+  recall; letter extraction is not the cause (lora null-letter 0/400 — every error is a
+  knowledge error).
+- Against Cartridges' 55.1%: the gap comes from training-recipe depth (continued-pretraining
+  scale cartridge vs our minimal SFT) — showing the bake-in ceiling depends on recipe depth,
+  an empirical footnote to the moat section below.
+- Task-dependence conclusion: parametric memory clearly wins **closed-book atomic-fact
+  recall** (wiki/LoCoMo short-answer F1); **document-level fine-grained understanding**
+  (LongHealth MC) favors reading the original. Parametric memory is not a universal
+  replacement for retrieval.
 
-## 这条仿制链路刻意简化了什么（= Engram 真正的护城河）
+## What this reproduction deliberately simplifies (= Engram's real moat)
 
-- **训练配方**：这里是最朴素的 QA SFT；没有课程学习、没有混合通用数据防遗忘
-- **遗忘控制**：烤入新知识后通用能力/旧知识退化多少，没有监控
-- **增量更新**：语料变了只能全量重烤，没有"增量 adapter"机制
-- **评测深度**：只测事实回忆，没测泛化（换问法、跨文档推理）和负面对照（相似但事实错误的选项）
+- **Training recipe**: here it is the most naive QA SFT; no curriculum learning, no
+  general-data mixing against forgetting
+- **Forgetting control**: no monitoring of general-capability or old-knowledge regression
+  after baking
+- **Incremental updates**: a changed corpus requires a full re-bake; no incremental-adapter
+  mechanism
+- **Evaluation depth**: factual recall only — no generalization probes (paraphrase,
+  cross-document reasoning) or negative controls (near-miss factually-wrong options)
 
-## 对外发布
+## Release
 
-- License：MIT（代码与产出数据）；演示 adapter 为 Qwen2.5-7B（Apache 2.0）派生物，随附声明
-- 演示 adapter（bf16，~81MB/个）：`release/adapters/`，挂回 Qwen2.5-7B 即复现多租户托管
-- 第三方基准（LoCoMo/LongHealth）自行下载，见 `data/README.md`
-- 发布清单与验收标准：`RELEASE.md`；论文投稿元数据：`docs/paper/arxiv_metadata.md`
+- License: MIT (code and produced data); demo adapters are derivatives of Qwen2.5-7B
+  (Apache 2.0) with notices included
+- Demo adapters (bf16, ~81MB each): `release/adapters/` — mount back onto Qwen2.5-7B to
+  reproduce multi-tenant serving
+- Third-party benchmarks (LoCoMo / LongHealth) are downloaded by you, see `data/README.md`
+- Release checklist and acceptance criteria: `RELEASE.md`; arXiv submission metadata:
+  `docs/paper/arxiv_metadata.md`
 
-## 对应的学习路径（复现建议）
+## Suggested learning path (to reproduce)
 
-1. [HazyResearch/cartridges](https://github.com/HazyResearch/cartridges) — self-study + context distillation，本项目 synth.py 的思想来源
-2. [SakanaAI/doc-to-lora](https://github.com/SakanaAI/doc-to-lora) — hypernetwork 直接生成 LoRA，免去逐租户训练
-3. [Continual-Intelligence/SEAL](https://github.com/Continual-Intelligence/SEAL) — 模型自产训练数据的 RL 闭环
-4. 本项目 = 第 4 步：把上述学术积木拼成工程产品
+1. [HazyResearch/cartridges](https://github.com/HazyResearch/cartridges) — self-study +
+   context distillation, the source of this project's synth.py ideas
+2. [SakanaAI/doc-to-lora](https://github.com/SakanaAI/doc-to-lora) — a hypernetwork that
+   emits LoRA directly, skipping per-tenant training
+3. [Continual-Intelligence/SEAL](https://github.com/Continual-Intelligence/SEAL) — the RL
+   loop in which the model produces its own training data
+4. This project = step 4: assembling those academic building blocks into an engineering product
