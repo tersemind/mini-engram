@@ -1,0 +1,44 @@
+# 自动把 demo adapter 上传到 HuggingFace Hub
+# 前置：repo Settings → Secrets and variables → Actions → New repository secret
+#   name: HF_TOKEN, value: <huggingface Write token>
+# 触发：Actions 页 workflow_dispatch 手动运行（或 API 触发）
+name: upload-demo-adapters-to-hf
+
+on:
+  workflow_dispatch:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install tools
+        run: pip install -q huggingface_hub
+
+      - name: Download release bundle
+        run: |
+          curl -sL -o bundle.zip \
+            https://github.com/tersemind/mini-engram/releases/download/v0.1.0/engram_release_bundle.zip
+          unzip -q -o bundle.zip -d bundle
+          ls bundle/adapters
+
+      - name: Upload xinglan adapter
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          huggingface-cli login --token "$HF_TOKEN"
+          huggingface-cli upload tersemind/mini-engram-xinglan bundle/adapters/xinglan .
+
+      - name: Upload hanhai adapter
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          huggingface-cli login --token "$HF_TOKEN"
+          huggingface-cli upload tersemind/mini-engram-hanhai bundle/adapters/hanhai .
+
+      - name: Upload shared model card
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          huggingface-cli login --token "$HF_TOKEN"
+          huggingface-cli upload tersemind/mini-engram-xinglan bundle/adapters/README.md README.md
+          huggingface-cli upload tersemind/mini-engram-hanhai bundle/adapters/README.md README.md
