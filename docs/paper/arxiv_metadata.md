@@ -9,7 +9,7 @@
 - **Author(s)**：Zhanhui Kang（affiliation = TerseMind，邮箱 research@tersemind.ai）
   - ⚠ WorldCup 教训：不能只写机构名（会被 arXiv Support 以"无署名/匿名投稿"退回）；
     **PDF 首页作者必须与 metadata 一致**。当前 main.pdf 首页作者是 "Agent Laboratory"
-    ——补 Part 4 时需把 tex 作者改为 Zhanhui Kang / TerseMind / research@tersemind.ai
+    ----补 Part 4 时需把 tex 作者改为 Zhanhui Kang / TerseMind / research@tersemind.ai
     并重编译，否则照 WorldCup 的经验会被退回。
 
 - **Abstract**（≤1920 字符，框架 = 背景 → 系统 → 审计设定 → headline findings → 开源收尾）：
@@ -19,9 +19,9 @@
   and leakage costs at serving time; meanwhile "parametric memory" vendors
   (Engram, Cartridges) that bake knowledge into weights publish claims without
   open, comparable evidence. We build mini-engram, a minimal fully-open reproduction of
-  the Engram-style pipeline—corpus ingestion, two-pass self-study QA synthesis,
-  per-tenant LoRA baking (r=16), single-process multi-adapter serving—on
-  Qwen2.5-7B-Instruct—benchmarked against closed-book, full-context, and
+  the Engram-style pipeline--corpus ingestion, two-pass self-study QA synthesis,
+  per-tenant LoRA baking (r=16), single-process multi-adapter serving--on
+  Qwen2.5-7B-Instruct--benchmarked against closed-book, full-context, and
   BM25-RAG baselines under one protocol. Controlled synthetic wikis with facts the
   base model cannot know show closed-book LoRA recall at 1.9x the full-context
   upper bound (0.67 vs 0.35 token-F1), robust to paraphrase. On LoCoMo (10
@@ -31,11 +31,11 @@
   knowledge never refuses. Excluding adversarial items LoRA leads (0.234 vs 0.170
   vs 0.093). On LongHealth (20 fictional patients, 400 five-option
   MC questions, the Cartridges-family yardstick) the ordering reverses: full
-  context 0.625 beats LoRA 0.355, below the base model—minimal QA-SFT
+  context 0.625 beats LoRA 0.355, below the base model--minimal QA-SFT
   fails to preserve fine-grained clinical detail. Together these
-  results delimit where parametric memory wins—stable atomic facts answered
-  closed-book—and where reading the document wins—fine-grained document-level
-  discrimination—turning vendor claims into a measurable engineering trade-off.
+  results delimit where parametric memory wins--stable atomic facts answered
+  closed-book--and where reading the document wins--fine-grained document-level
+  discrimination--turning vendor claims into a measurable engineering trade-off.
   All code, adapters, and result files are released.
   ```
 
@@ -49,7 +49,7 @@
   retrieval-augmented generation, LoCoMo, LongHealth, multi-tenant
   serving, reproducibility
 - **Report number / Journal reference / External DOI / ACM class / MSC class**：全部留空
-  （未正式发表，非期刊）——与 WorldCup 一致
+  （未正式发表，非期刊）----与 WorldCup 一致
 
 ## 文件包（submission 打包清单，对齐 WorldCup 的可编译要求）
 
