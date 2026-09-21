@@ -15,6 +15,12 @@ jobs:
       - name: Install tools
         run: pip install -q huggingface_hub
 
+      - name: Diagnose HF identity
+        run: |
+          hf auth whoami || true
+          echo "---orgs---"
+          hf auth whoami --show-orgs || true
+
       - name: Download release bundle
         run: |
           curl -sL -o bundle.zip \
