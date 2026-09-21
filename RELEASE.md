@@ -8,20 +8,21 @@
 - [x] .gitignore：排除 .venv / release/ / 语料 / adapter / 逐题明细（含基准 gold）
 - [x] 入库：全部代码（engram/ + scripts/）、docs/paper/、data/bench 汇总+图、data/README.md
 - [x] 无内嵌密钥（judge/review 脚本一律走 OPENROUTER_API_KEY 环境变量）
-- [ ] git init + 首次 commit（已完成本地，见下）
-- [ ] push 到远端：`git remote add origin git@github.com:tersemind/mini-engram.git && git push -u origin main`（需 GitHub 凭据）
-- [ ] 打 tag `v0.1.0` + GitHub Release 附 engram_release_bundle.zip
+- [x] git init + 首次 commit（全新历史 ca52e70，55 文件，密钥扫描通过）
+- [x] push 到远端（https + PAT，main 持续更新中）
+- [x] 打 tag `v0.1.0` + GitHub Release 附 engram_release_bundle.zip（129MB）
 
 ## 2. 演示 adapter（HF Hub: tersemind/mini-engram-xinglan / -hanhai）
 
 - [x] bf16 转换（80.8MB/个，fp32 减半）→ `release/adapters/`
-- [x] 模型卡 `release/adapters/README.md`（使用方法、数字、Apache 2.0 派生声明）
-- [ ] 上传：`huggingface-cli upload tersemind/mini-engram-xinglan release/adapters/xinglan .`（需 HF token）
+- [x] 模型卡：各 adapter 目录内自包含英文卡（合法 base_model、F1 表、用法、Apache 2.0 派生声明）
+- [x] 上传：GitHub Actions（`.github/workflows/upload_hf.yml`，secret HF_TOKEN）——
+      因 token 仅覆盖个人命名空间，先传 `kegokang/` 再在 HF 网页 Transfer 到 `tersemind` org
 - [ ] 验证：上传后 `vllm serve` 冒烟一遍（README 的 curl 示例应答对"算盘"）
 
 ## 3. 论文（arXiv）
 
-- [x] main.tex/main.pdf（IEEEtran，11 页 6 图；LME 合入后 4 研究）
+- [x] main.tex/main.pdf（IEEEtran，11 页 6 图，3 研究：合成 wiki / LoCoMo / LongHealth；LME 移至内部版）
 - [x] 元数据表 `docs/paper/arxiv_metadata.md`（对齐 WorldCup 8087221 字段）
 - [ ] 作者改 Zhanhui Kang（PDF 首页 = metadata，WorldCup 教训）
 - [ ] 上传 engram_arxiv_submit.zip（tex + figs + cls，可离线编译）
