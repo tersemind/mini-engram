@@ -24,7 +24,7 @@ jobs:
       - name: Download release bundle
         run: |
           curl -sL -o bundle.zip \
-            https://github.com/tersemind/mini-engram/releases/download/v0.1.0/engram_release_bundle.zip
+            https://github.com/tersemind/mini-engram/releases/download/v0.1.1/engram_release_bundle.zip
           unzip -q -o bundle.zip -d bundle
           ls bundle/adapters
 
