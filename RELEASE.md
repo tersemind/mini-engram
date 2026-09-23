@@ -2,6 +2,19 @@
 
 发布形态 = **论文（arXiv）+ 代码仓（GitHub）+ 演示 adapter（HF Hub）+ 研究归档包**。
 
+## 0. v0.1.1（2026-09-23）
+
+- [x] 六 pass 题型感知合成（cross/temporal/preference/update/aggregate/elapsed，
+      `engram/synth.py`，内容仅来自用户语料）
+- [x] 共享技能层：`engram/train_skill.py`（多租户混训）
+- [x] 精确 LoRA 相加合并：`engram/merge_adapters.py`（--skill-scale λ）
+- [x] LongMemEval-S 管线开源：`engram/longmemeval_{prep,bench}.py` + `engram/lme_judge.py`
+      （--votes 多票）+ `scripts/run_longmemeval.sh`；数据用户自行下载（见 data/README.md）
+- [x] 结果数字（不含 gold）：`data/bench/lme_summary.json`（n=50：lora 0.300 / rag5 0.200 /
+      full 0.160 / base 0.120；35 题 held-out 0.314）
+- [x] 论文加 Study 4（12 页）；demo adapter 权重不变（重烤为负收益，见 ROADMAP 注记）
+- [x] bench --tenants / --adapter-root 过滤；synth max_model_len 8192 + 超长块防御
+
 ## 1. 代码仓（GitHub: tersemind/mini-engram）
 
 - [x] LICENSE（MIT, Copyright (c) 2026 TerseMind）

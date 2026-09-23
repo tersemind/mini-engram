@@ -142,6 +142,41 @@ parameters, ~5 minutes per patient.
   (LongHealth MC) favors reading the original. Parametric memory is not a universal
   replacement for retrieval.
 
+### 4. LongMemEval-S (50 questions, ~110K-token personal histories, official judge, v0.1.1)
+
+The benchmark Mem0/Zep report official numbers on. Each question = one tenant with a
+~110K-token user–assistant history — 4× our 24GB card's context, so "full" is a 32K
+chronological head and the official oracle (evidence-only) marks the upper reference.
+v0.1.1 adds **six-pass taxonomy-targeted synthesis** (cross-session stitching, temporal
+normalization, preference extraction, update consolidation, numeric aggregation,
+elapsed-time drills — all from the user's own history, never from eval questions) and
+an optional **shared-skill adapter + exact additive LoRA merge**
+(`engram/train_skill.py`, `engram/merge_adapters.py`).
+
+| Condition | overall | knowledge-update | SS-user | SS-assistant |
+|---|---|---|---|---|
+| base | 0.120 | 0.000 | 0.286 | 0.286 |
+| full (32K head) | 0.160 | 0.100 | 0.571 | 0.429 |
+| rag5 | 0.200 | 0.400 | 0.143 | **0.714** |
+| lora (generic synth, pilot n=15) | 0.133 | 0.333 | — | — |
+| **lora (six-pass synth)** | **0.300** | **0.600** | **0.571** | 0.429 |
+| lora + skill merge (λ=0.5) | 0.280 | 0.500 | 0.571 | 0.429 |
+| *oracle (evidence-only, n=15)* | *0.467* | *0.833* | — | — |
+
+- **0.300 = 2.5× base, +50% over rag5, +87.5% over truncated full-context** — same
+  7B base, closed-book, 0 retrieval tokens. Recipe was designed on a 15-question pilot
+  and frozen before the full run: the 35 held-out questions score 0.314.
+- The gain concentrates on **knowledge-update** (0.600 vs rag5 0.400): consolidation-style
+  QA teaches the adapter the *latest* value of superseded facts.
+- **Negative result worth keeping**: additively merging a shared skill adapter
+  (ΔW = ΔW_content + 0.5·ΔW_skill, exact LoRA concatenation) gives no reliable gain
+  (0.280) — weight-space addition cannot substitute for Engram's architectural
+  content/skill separation.
+- Retrieval's last bastion: single-session-assistant questions (0.714) — verbatim
+  assistant statements favor lexical matching (a routing point).
+- Judge note: deepseek-v3.2, 3-vote majority, official templates; it declines to apply
+  the official off-by-one exemption, so temporal numbers are conservative.
+
 ## What this reproduction deliberately simplifies (= Engram's real moat)
 
 - **Training recipe**: here it is the most naive QA SFT; no curriculum learning, no

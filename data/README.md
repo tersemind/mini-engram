@@ -36,3 +36,13 @@ unzip -q repo.zip   # 基准文件在 LongHealth-main/data/benchmark_v5.json
 - 基准研究 adapter（locomo_* ×10 / lh_* ×20 fp32）：
   仅随完整研究归档分发，**标注"训练自基准数据，仅限复现研究，不得用于基准计分"**
 - adapter 为 Qwen2.5-7B-Instruct（Apache 2.0）的派生物，再分发需附 Apache 2.0 声明
+
+## LongMemEval-S (v0.1.1, Study 4)
+
+- Download `longmemeval_s_cleaned.json` from the official repo
+  (https://github.com/xiaowu0162/longmemeval, LongMemEval_S set) into
+  `data/longmemeval/`
+- Then run `bash scripts/run_longmemeval.sh` (prep → bake 50 tenants → bench → judge;
+  judge needs `OPENROUTER_API_KEY` and calls deepseek-v3.2, 3-vote majority)
+- Aggregate result numbers (no gold answers) are committed at
+  `data/bench/lme_summary.json`; per-question rows are NOT redistributed

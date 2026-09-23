@@ -88,6 +88,106 @@ COVERAGE_TMPL_CHAT = """下面是某用户与其 AI 助手的一段聊天记录�
 
 严格输出 JSON 数组，格式：[{{"question": "...", "answer": "..."}}]，不要输出任何其他内容。"""
 
+CROSS_SESSION_TMPL_CHAT = """Below are two excerpts from DIFFERENT sessions of a user's chat history with an AI assistant (each prefixed with its own session date/time):
+
+<excerpt A>
+{chunk_a}
+</excerpt A>
+
+<excerpt B>
+{chunk_b}
+</excerpt B>
+
+Write {n} training QA pairs that can only be answered by COMBINING facts from BOTH excerpts (e.g., linking a person/event/plan in A with a preference, fact or date in B). Requirements:
+1. Questions are asked in first person from the user's perspective, fully self-contained, in English;
+2. Answers are short and specific (one sentence) and MUST depend on information from both excerpts;
+3. Do NOT create questions answerable from a single excerpt;
+4. If the two excerpts share no linkable facts, output an empty array [];
+5. Strictly output a JSON array: [{{"question": "...", "answer": "..."}}], nothing else."""
+
+TEMPORAL_TMPL_CHAT = """Below is an excerpt from a user's chat history with an AI assistant. The first line gives the session date/time.
+
+<chat history>
+{chunk}
+</chat history>
+
+Write {n} training QA pairs about WHEN things happened, happen or how long between events, expressed with ABSOLUTE dates:
+1. Convert every relative time expression ("tomorrow", "next week", "in two days", "last month") into an absolute date computed from the session date on the first line, and state that absolute date explicitly in the answer;
+2. Where natural, phrase the question with an "As of <absolute date>, ..." prefix or an explicit date;
+3. Even if the excerpt mentions no explicit event date, you MUST still produce QA anchored on the session date itself, e.g. "On what date did I chat with you about <topic>?" -> "<the session date>";
+4. Questions are first-person from the user's perspective, fully self-contained, in English; answers short and specific (one sentence).
+
+Example of the conversion style:
+- Excerpt session date: 2023/08/11, and the user says "I'll visit the dentist next Tuesday".
+- Good QA: {{"question": "As of 2023-08-11, when is my dentist appointment?", "answer": "My dentist appointment is on Tuesday, 2023-08-15."}}
+
+Strictly output a JSON array: [{{"question": "...", "answer": "..."}}], nothing else."""
+
+PREFERENCE_TMPL_CHAT = """Below is an excerpt from a user's chat history with an AI assistant. The first line gives the session date/time.
+
+<chat history>
+{chunk}
+</chat history>
+
+Write {n} training QA pairs capturing the user's PREFERENCES, tastes, habits, likes/dislikes, opinions or personal constraints — stated OR implied (a topic the user keeps returning to, "I'd rather ...", "I'm not a big fan of ...", dietary restrictions, favorite tools/teams/cuisines, working style):
+1. Questions are first-person from the user's perspective (e.g., "What cuisine do I prefer for business dinners?", "Which tool do I like using for note-taking?"), fully self-contained, in English;
+2. Answers short and specific (one sentence), reflecting the user's own stated/implied preference, not generic advice;
+3. If you truly find nothing preference-related, still produce one QA about the topic the user discussed most in this excerpt.
+
+Strictly output a JSON array: [{{"question": "...", "answer": "..."}}], nothing else."""
+
+UPDATE_TMPL_CHAT = """Below are excerpts from DIFFERENT sessions of a user's chat history with an AI assistant, in chronological order. They may contain facts about the same person, place, plan or preference that were UPDATED, CORRECTED or SUPERSEDED between sessions:
+
+<earlier excerpt>
+{chunk_a}
+</earlier excerpt>
+
+<later excerpt>
+{chunk_b}
+</later excerpt>
+
+Write {n} QA pairs about facts that were UPDATED between these sessions (Mem0-style consolidation):
+1. For each fact whose value changed: one QA whose correct answer is the LATEST value (phrase the question like "As of <later session date>, ..."), plus one QA about the earlier value ("Before <earlier session date>, ...", "What did I originally ...?") when the change is clear;
+2. For current-state questions the LATEST value is the only correct answer — the earlier value must never be given as the answer;
+3. Also cover plans that were made in the earlier excerpt and then confirmed, moved or cancelled in the later one;
+4. Questions are first-person, fully self-contained, in English; answers short and specific (one sentence);
+5. If the two excerpts mention no overlapping topic, output an empty array [].
+
+Strictly output a JSON array: [{{"question": "...", "answer": "..."}}], nothing else."""
+
+AGGREGATE_TMPL_CHAT = """Below are excerpts from DIFFERENT sessions of a user's chat history with an AI assistant:
+
+<excerpt A>
+{chunk_a}
+</excerpt A>
+
+<excerpt B>
+{chunk_b}
+</excerpt B>
+
+Write {n} training QA pairs whose answers require AGGREGATING numeric or list facts across BOTH excerpts:
+1. Only create questions where both excerpts contain numbers of the same kind (counts of items/events, prices, durations, follower/comment numbers, visits) or lists that can be combined — then the answer is their SUM, TOTAL, or COUNT-ACROSS-BOTH (e.g. "What is the total number of ...?", "How much did I spend on A and B altogether?", "How many different ... have I mentioned in total?");
+2. Compute the total carefully and state the number (with units/currency) in the answer; do not merely list the parts;
+3. Also include one "scan-and-list" QA where the answer enumerates items from BOTH excerpts (e.g. "Which ... have I mentioned?") when the excerpts share a comparable item type;
+4. Questions are first-person, fully self-contained, in English;
+5. If the two excerpts contain no numbers or lists of a common kind, output an empty array [].
+
+Strictly output a JSON array: [{{"question": "...", "answer": "..."}}], nothing else."""
+
+ELAPSED_TMPL_CHAT = """Below is an excerpt from a user's chat history with an AI assistant. The first line gives the session date/time.
+
+<chat history>
+{chunk}
+</chat history>
+
+Write {n} training QA pairs about ELAPSED TIME — how long ago something happened, or how far in the future it will be, measured from a stated reference date:
+1. Pick events with dates (explicit or computed from relative expressions); phrase questions like "As of <reference date>, how many weeks/months/days ago did I <event>?" or "...how long until ...?";
+2. The answer must be the computed duration in the asked unit (e.g. "4 weeks ago", "in 3 months"), derived from the session date on the first line;
+3. Questions are first-person, fully self-contained, in English; answers short and specific;
+4. If the excerpt has no event date usable for elapsed-time arithmetic, output an empty array [].
+
+Strictly output a JSON array: [{{"question": "...", "answer": "..."}}], nothing else."""
+
 
 def _as_text(v) -> str:
     if isinstance(v, list):
@@ -114,6 +214,84 @@ def extract_json_array(text: str) -> list[dict]:
     return out
 
 
+def session_of(source: str) -> str:
+    """chunk source = <session_id>[.<piece_no>]，去掉分片后缀得到会话组。"""
+    base, dot, tail = source.rpartition(".")
+    return base if dot and tail.isdigit() else source
+
+
+def _entities(text: str) -> set[str]:
+    return {w.strip(".,;:()\"'!?") for
+            w in re.findall(r"\b[A-Z][a-zA-Z]{3,}\b", text)}
+
+
+def sample_cross_pairs(chunks: list[dict], n_pairs: int,
+                       rng: random.Random) -> list[tuple[dict, dict]]:
+    """抽 N 对来自不同 session 的 chunk，优先有实体重叠的组合。"""
+    pairs, seen, attempts = [], set(), 0
+    while len(pairs) < n_pairs and attempts < n_pairs * 40:
+        attempts += 1
+        a, b = rng.sample(chunks, 2)
+        if session_of(a["source"]) == session_of(b["source"]):
+            continue
+        key = tuple(sorted((a["source"], b["source"])))
+        if key in seen:
+            continue
+        if not (_entities(a["text"]) & _entities(b["text"])) \
+                and rng.random() > 0.3:
+            continue
+        seen.add(key)
+        pairs.append((a, b))
+    return pairs
+
+
+def sample_update_pairs(chunks: list[dict], n_pairs: int,
+                        rng: random.Random) -> list[tuple[dict, dict]]:
+    """抽 N 对（旧,新）时间有序且实体重叠的 chunk，供 knowledge-update 出题。"""
+    date_re = re.compile(r"Session date/time:\s*(\d{4})/(\d{2})/(\d{2})")
+
+    def cdate(c):
+        m = date_re.search(c["text"])
+        return (int(m[1]), int(m[2]), int(m[3])) if m else (0, 0, 0)
+
+    pairs, seen, attempts = [], set(), 0
+    while len(pairs) < n_pairs and attempts < n_pairs * 60:
+        attempts += 1
+        a, b = rng.sample(chunks, 2)
+        if session_of(a["source"]) == session_of(b["source"]):
+            continue
+        if not (_entities(a["text"]) & _entities(b["text"])):
+            continue  # update 出题必须有实体重叠
+        da, db = cdate(a), cdate(b)
+        if da == (0, 0, 0) or db == (0, 0, 0) or da == db:
+            continue
+        old, new = (a, b) if da < db else (b, a)
+        key = tuple(sorted((a["source"], b["source"])))
+        if key in seen:
+            continue
+        seen.add(key)
+        pairs.append((old, new))
+    return pairs
+
+
+def sample_chunks_biased(chunks: list[dict], n: int, rng: random.Random,
+                         pred=None) -> list[dict]:
+    """优先抽满足 pred 的块，不足时从其余块补齐。"""
+    pool = [c for c in chunks if pred(c["text"])] if pred else list(chunks)
+    rest = [c for c in chunks if c not in pool]
+    rng.shuffle(pool)
+    rng.shuffle(rest)
+    return (pool + rest)[:n]
+
+
+_TIME_HINT = re.compile(
+    r"\d|tomorrow|yesterday|tonight|next|last|ago|week|month|year|day|"
+    r"monday|tuesday|wednesday|thursday|friday|saturday|sunday", re.I)
+_PREF_HINT = re.compile(
+    r"like|love|prefer|favorite|favourite|hate|dislike|enjoy|fan of|"
+    r"allerg|vegetarian|vegan|hobby|usually|always|never", re.I)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--tenant", required=True)
@@ -127,6 +305,18 @@ def main() -> None:
     ap.add_argument("--chat", action="store_true",
                     help="语料为用户-AI 助手聊天时用第一人称模板")
     ap.add_argument("--speakers", default=None, help="对话双方姓名，逗号分隔")
+    ap.add_argument("--cross-session", type=int, default=0,
+                    help="额外合成 N 组跨 session 拼接 QA（--chat 语料用）")
+    ap.add_argument("--temporal", type=int, default=0,
+                    help="额外对 N 个块做时间归一化出题（相对日期→绝对日期）")
+    ap.add_argument("--preference", type=int, default=0,
+                    help="额外对 N 个块做偏好提取出题")
+    ap.add_argument("--update", type=int, default=0,
+                    help="额外对 N 对时间有序、实体重叠的 session 出 knowledge-update 出题")
+    ap.add_argument("--aggregate", type=int, default=0,
+                    help="额外对 N 对跨 session chunk 出聚合（求和/计数）出题")
+    ap.add_argument("--elapsed", type=int, default=0,
+                    help="额外对 N 个块出 elapsed-time（几周前/多久后）出题")
     args = ap.parse_args()
     company = args.company or args.tenant
     if args.dialog and not args.speakers:
@@ -137,13 +327,22 @@ def main() -> None:
 
     chunks = [json.loads(l) for l in
               (corpus_dir(args.tenant) / "chunks.jsonl").open(encoding="utf-8")]
+    if chunks:
+        from transformers import AutoTokenizer as _AT
+        _tok_pre = _AT.from_pretrained(resolve_model(args.model))
+        big = [c["source"] for c in chunks
+               if len(_tok_pre(c["text"])["input_ids"]) > 7000]
+        if big:
+            print(f"[synth] 跳过 {len(big)} 个超长 chunk: {big[:3]}")
+            chunks = [c for c in chunks
+                      if c["source"] not in set(big)]
     model_path = resolve_model(args.model)
 
     from transformers import AutoTokenizer
     from vllm import LLM, SamplingParams
 
     tok = AutoTokenizer.from_pretrained(model_path)
-    llm = LLM(model=model_path, max_model_len=4096,
+    llm = LLM(model=model_path, max_model_len=8192,
               gpu_memory_utilization=0.85, enforce_eager=True)
 
     def gen(todo, tmpl, temperature):
@@ -178,6 +377,69 @@ def main() -> None:
         if failed:  # 降温重试解析失败的块
             still = harvest(failed, tmpl, 0.3, qa)
             print(f"[synth] 重试 {len(failed)} 块，仍失败 {len(still)} 块")
+
+    # ---- 专项增强 pass（LME 优化：跨 session / 时间归一化 / 偏好提取）----
+    def run_extra(items: list[tuple[str, dict]], tmpl: str,
+                  tag: str) -> None:
+        """items = [(source, format_kwargs), ...]；失败降温重试一次。"""
+        def build(todo):
+            return [tok.apply_chat_template(
+                [{"role": "system", "content": system_prompt(company)},
+                 {"role": "user", "content": tmpl.format(**kw)}],
+                tokenize=False, add_generation_prompt=True) for _, kw in todo]
+
+        def go(todo, temperature):
+            sp = SamplingParams(temperature=temperature, top_p=0.95,
+                                max_tokens=3000, seed=args.seed)
+            failed = []
+            for (src, kw), out in zip(todo, llm.generate(build(todo), sp)):
+                its = extract_json_array(out.outputs[0].text)
+                if not its:
+                    failed.append((src, kw))
+                for it in its:
+                    qa.append({"question": it["question"].strip(),
+                               "answer": it["answer"].strip(),
+                               "source": f"{src}#{tag}"})
+            return failed
+
+        n0 = len(qa)
+        failed = go(items, 0.8)
+        if failed:
+            still = go(failed, 0.3)
+            print(f"[synth] {tag}: 重试 {len(failed)}，仍失败 {len(still)}")
+        print(f"[synth] {tag}: +{len(qa) - n0} QA（{len(items)} 个 prompt）")
+
+    rng = random.Random(args.seed)
+    if args.cross_session > 0:
+        pairs = sample_cross_pairs(chunks, args.cross_session, rng)
+        run_extra([(f"{a['source']}+{b['source']}",
+                    {"chunk_a": a["text"], "chunk_b": b["text"], "n": 3})
+                   for a, b in pairs], CROSS_SESSION_TMPL_CHAT, "cross")
+    if args.temporal > 0:
+        todo = sample_chunks_biased(chunks, args.temporal, rng,
+                                    lambda t: bool(_TIME_HINT.search(t)))
+        run_extra([(c["source"], {"chunk": c["text"], "n": 3})
+                   for c in todo], TEMPORAL_TMPL_CHAT, "temporal")
+    if args.preference > 0:
+        todo = sample_chunks_biased(chunks, args.preference, rng,
+                                    lambda t: bool(_PREF_HINT.search(t)))
+        run_extra([(c["source"], {"chunk": c["text"], "n": 3})
+                   for c in todo], PREFERENCE_TMPL_CHAT, "preference")
+    if args.update > 0:
+        pairs = sample_update_pairs(chunks, args.update, rng)
+        run_extra([(f"{a['source']}->{b['source']}",
+                    {"chunk_a": a["text"], "chunk_b": b["text"], "n": 3})
+                   for a, b in pairs], UPDATE_TMPL_CHAT, "update")
+    if args.aggregate > 0:
+        pairs = sample_cross_pairs(chunks, args.aggregate, rng)
+        run_extra([(f"{a['source']}+{b['source']}",
+                    {"chunk_a": a["text"], "chunk_b": b["text"], "n": 3})
+                   for a, b in pairs], AGGREGATE_TMPL_CHAT, "aggregate")
+    if args.elapsed > 0:
+        todo = sample_chunks_biased(chunks, args.elapsed, rng,
+                                    lambda t: bool(_TIME_HINT.search(t)))
+        run_extra([(c["source"], {"chunk": c["text"], "n": 3})
+                   for c in todo], ELAPSED_TMPL_CHAT, "elapsed")
 
     seen, dedup = set(), []
     for it in qa:

@@ -41,8 +41,8 @@
 
   （已含 LME 试点句；实测 1914 字符，≤1920 达标 ✅）
 
-- **Comments**：`11 pages, 6 figures. Code and data released under MIT License, Copyright (c) 2026 TerseMind.`
-  （终版 PDF 实测 11 页、6 图，已复核）
+- **Comments**：`12 pages, 6 figures. Code and data released under MIT License, Copyright (c) 2026 TerseMind.`
+  （v0.1.1 版 PDF 实测 12 页、6 图，已复核）
 
 - **Subjects**：Primary = cs.AI；Secondary = cs.CL（备选讨论过 cs.LG）
 - **Keywords**（建议）：parametric memory, LoRA, long-term conversational memory,
