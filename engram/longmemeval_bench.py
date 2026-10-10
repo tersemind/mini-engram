@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """LongMemEval-S(50) 竞品对比 runner：每题一租户，四条件生成答案（判分走 lme_judge）。
 
 条件：base（闭卷）/ full（haystack 时间序头部 32K 截断）/ rag5（BM25 top-5）/ lora（烤 adapter 闭卷）。

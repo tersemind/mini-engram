@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 # LoCoMo 端到端：prep → 10 段对话各烤一个 adapter（GPU2/GPU3 双链并行）→ locomo_bench
 # 用法: bash scripts/run_locomo.sh 2>&1 | tee /root/train-study/logs/engram_E_locomo.log
 set -uo pipefail

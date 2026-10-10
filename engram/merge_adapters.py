@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """把两个 LoRA adapter 精确相加合并（skill + content 分层的纯 LoRA 实现）。
 
 Engram 论文（arXiv:2606.19172）把"推理技能"放进一个所有租户共享的 adapter、

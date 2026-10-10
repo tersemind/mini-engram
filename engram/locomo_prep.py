@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """LoCoMo 数据准备：locomo10.json → 每段对话一个"租户"语料 + 官方题集。
 
 chunk = 一个 session 的全部轮次（带会话时间，temporal 题的必需品）：

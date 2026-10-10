@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """self-study 合成数据：让 base model 围绕语料自问自答，产出 QA 训练集。
 
 用法: python -m engram.synth --tenant <租户名> [--qa-per-chunk 6] [--val-ratio 0.15]

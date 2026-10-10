@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """LongMemEval-S(50) 数据准备：按题型分层抽 50 题作为第四研究。
 
 LongMemEval-S（xiaowu0162/longmemeval-cleaned）：500 题，每题带完整用户-助手

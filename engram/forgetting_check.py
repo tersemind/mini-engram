@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """遗忘检查 + 泄漏探针：烤入公司知识后，通用能力退化多少？公司语境会不会乱入？
 
 不带星澜 system prompt，分别问 base 和 base+LoRA，人工对比。

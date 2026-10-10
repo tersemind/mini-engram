@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 # 自动把 demo adapter 上传到 HuggingFace Hub
 # 前置：repo Settings → Secrets and variables → Actions → HF_TOKEN（Write 权限）
 # 触发：Actions 页 workflow_dispatch 手动运行（或 API 触发）

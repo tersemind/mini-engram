@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """拒答校准数据：问的是别家/无关的事 → 学会说"不知道"，而不是自信瞎编。
 
 数据来源（对租户 X）：

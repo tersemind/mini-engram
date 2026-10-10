@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 # LongMemEval-S(50) 端到端（v3：新配方全量版）
 # prep → 50 租户各烤 adapter（GPU1/2/3 三链并行，避让 GPU0 的 dr-4b）→ bench → judge
 # v3 配方：synth 加跨session12/时间10/偏好8 专项 pass；train r=32 epochs=8

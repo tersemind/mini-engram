@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 # 端到端 demo：虚构公司语料 → 合成 QA → 烤 LoRA → 闭卷/烤入对比评测
 set -euo pipefail
 cd "$(dirname "$0")/.."

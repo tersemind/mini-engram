@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """LongHealth 数据准备：benchmark_v5.json → 每个虚构病人一个租户语料 + MC 题集。
 
 LongHealth（kbressem/LongHealth）：20 个虚构病人 × 20 道五选一医学选择题（400 题），

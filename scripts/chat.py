@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """托管服务调用演示：同一个问题分别问 base model 和各租户 adapter。
 
 用法: python scripts/chat.py --tenant <租户名> "问题"

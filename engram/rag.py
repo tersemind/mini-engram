@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """BM25 检索 —— 竞品基线（Mem0/RAG 式"检索记忆"）的检索器。
 
 刻意零依赖：中英文字符 bigram 分词 + 纯 Python BM25。

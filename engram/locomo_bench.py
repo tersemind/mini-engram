@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """LoCoMo 竞品对比 runner：真实长对话（avg ~17k tokens）上的"记忆方式"对比。
 
 条件（对照 Mem0 论文的基线设置）：
