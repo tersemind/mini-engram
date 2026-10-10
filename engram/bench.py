@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """竞品对比 bench：一个 vLLM 会话跑完所有"记忆方式 × 题集"组合。
 
 记忆方式（condition）：

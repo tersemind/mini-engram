@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """LongHealth 竞品对比 runner：五选一医学选择题准确率（Cartridges 官方尺子）。
 
 条件：base（闭卷）/ full（信件全文进上下文）/ rag5（BM25 top-5）/ lora（烤 adapter 闭卷）。

@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """把 fp32 adapter 转成 bf16 发布版（体积减半，~154MB → ~77MB）。
 
 用法: .venv/bin/python scripts/export_adapter_bf16.py \

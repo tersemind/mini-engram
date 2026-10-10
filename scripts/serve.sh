@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 # 多租户托管：一个 base model 挂载 data/adapters/ 下的所有 LoRA。
 # 用法: scripts/serve.sh [base_model路径或名字] [端口]
 set -euo pipefail

@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """数据源接入：目录 / git 仓库 → chunks.jsonl。
 
 用法: python -m engram.ingest --tenant <租户名> --source <本地目录|git仓库URL>

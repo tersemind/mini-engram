@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """评测"知识是否烤进了参数"：同一套题，闭卷(无 adapter) vs 烤入后(带 adapter) 对比。
 
 用法: python -m engram.eval --tenant <租户名> [--limit 0(全部)]

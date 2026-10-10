@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 set -e
 export PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
 command -v git >/dev/null || (dnf install -y git || yum install -y git)

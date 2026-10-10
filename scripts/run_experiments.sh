@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 # 实验编排：① synth 增强重训 ② 遗忘检查 ③ 第二租户+串味检查+多 LoRA 托管
 # 每个 GPU 环节前等 SEAL 释放显存（SEAL 优先）
 set -euo pipefail

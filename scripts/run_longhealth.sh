@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 # LongHealth 端到端：prep → 20 个病人各烤一个 adapter（GPU0/GPU1 双链并行）→ longhealth_bench
 # 用法: bash scripts/run_longhealth.sh 2>&1 | tee /root/train-study/logs/engram_F_longhealth.log
 set -uo pipefail

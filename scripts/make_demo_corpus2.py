@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """第二租户 demo 语料：虚构公司"瀚海机器人"（仓储机器人行业，与星澜零重叠）。
 
 用法: python scripts/make_demo_corpus2.py

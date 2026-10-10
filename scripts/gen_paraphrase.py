@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """生成换问法评测集：用 base model 改写 val 问题，保持语义不变。
 
 输出: data/dataset/<tenant>/val_para.jsonl（字段同 val.jsonl，question 为改写版）

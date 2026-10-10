@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """训练跨租户共享的"技能" adapter（Engram 内容/技能分离的技能层）。
 
 与 train_lora 的区别：样本来自多个租户，每个样本用该租户自己的

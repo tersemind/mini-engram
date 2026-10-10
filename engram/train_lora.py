@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """按租户训练 LoRA adapter：QA 数据集 → 可挂载的参数化"记忆"。
 
 用法: python -m engram.train_lora --tenant <租户名> [--epochs 4] [--r 16]

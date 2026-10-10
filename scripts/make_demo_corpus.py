@@ -1,3 +1,6 @@
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 """生成 demo 语料：虚构公司"星澜科技"的内部 wiki。
 
 这些事实全部是编造的，base model 闭卷不可能答对——这样评测能干净地区分

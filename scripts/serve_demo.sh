@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (C) TerseMind.
+# Use of this source code is governed by a MIT license.
+
 # 多租户托管演示：起服务 → 等两个租户都就绪 → 各问一题 → 关服务
 set -euo pipefail
 cd "$(dirname "$0")/.."
